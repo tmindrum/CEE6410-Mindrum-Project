@@ -1,4 +1,5 @@
---- Job Mindrum-Tyler-Project.gms Start 12/11/25 14:23:04 50.4.1 84b10359 WEX-WEI x86 64bit/MS Windows
+
+--- Job Mindrum-Tyler-Project.gms Start 12/11/25 14:46:55 50.4.1 84b10359 WEX-WEI x86 64bit/MS Windows
 --- Applying:
     C:\GAMS\50\gmsprmNT.txt
 --- GAMS Parameters defined
@@ -15,14 +16,14 @@
 Licensee: Course License                                 G250902+0003Ac-GEN
           Utah State University                                     DCE4709
           225a\gamslice.dat
-          node:22671403 mem:16 cores:4 ipport:59644 uses:0@0 v:2           
+          node:22671403 mem:16 cores:4 ipport:64733 uses:0@0 v:2           
           Course license for use within the course and related course work
           The expiration date of time-limited license is Dec 31, 2025
 System information: 4 physical cores and 16 Gb physical memory detected
 GAMS 50.4.1   Copyright (C) 1987-2025 GAMS Development. All rights reserved
 --- Starting compilation
 --- Mindrum-Tyler-Project.gms(114) 3 Mb
---- Starting execution: elapsed 0:00:00.019
+--- Starting execution: elapsed 0:00:00.020
 --- Mindrum-Tyler-Project.gms(70) 4 Mb
 --- Generating MIP model pipelineRoute
 --- Mindrum-Tyler-Project.gms(114) 4 Mb
@@ -32,7 +33,7 @@ GAMS 50.4.1   Copyright (C) 1987-2025 GAMS Development. All rights reserved
 --- RHS       [min, max] : [ 1.000E+00, 5.000E+02] - Zero values observed as well
 --- Bound     [min, max] : [ 1.000E+00, 1.000E+00] - Zero values observed as well
 --- Matrix    [min, max] : [ 1.000E+00, 1.000E+05]
---- Executing CPLEX (Solvelink=2): elapsed 0:00:00.019
+--- Executing CPLEX (Solvelink=2): elapsed 0:00:00.028
 
 IBM ILOG CPLEX   50.4.1 84b10359 Aug 28, 2025          WEI x86 64bit/MS Window
 
@@ -84,25 +85,25 @@ Root relaxation solution time = 0.00 sec. (0.04 ticks)
    Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
 
 *     0+    0                          410.0000        0.0000           100.00%
-Found incumbent of value 410.000000 after 0.00 sec. (0.19 ticks)
+Found incumbent of value 410.000000 after 0.01 sec. (0.19 ticks)
       0     0       88.3333     9      410.0000       88.3333       17   78.46%
 *     0+    0                          110.0000       88.3333            19.70%
-Found incumbent of value 110.000000 after 0.00 sec. (0.24 ticks)
+Found incumbent of value 110.000000 after 0.01 sec. (0.24 ticks)
 *     0     0      integral     0      105.0000      105.0000       20    0.00%
-Elapsed time = 0.01 sec. (0.31 ticks, tree = 0.01 MB)
-Found incumbent of value 105.000000 after 0.01 sec. (0.31 ticks)
+Elapsed time = 0.03 sec. (0.31 ticks, tree = 0.01 MB)
+Found incumbent of value 105.000000 after 0.03 sec. (0.31 ticks)
 
 Root node processing (before b&c):
-  Real time             =    0.01 sec. (0.32 ticks)
+  Real time             =    0.03 sec. (0.32 ticks)
 Parallel b&c, 8 threads:
   Real time             =    0.00 sec. (0.00 ticks)
   Sync time (average)   =    0.00 sec.
   Wait time (average)   =    0.00 sec.
                           ------------
-Total (root+branch&cut) =    0.01 sec. (0.32 ticks)
+Total (root+branch&cut) =    0.03 sec. (0.32 ticks)
 
 --- MIP status (101): integer optimal solution.
---- Cplex Time: 0.01sec (det. 0.32 ticks)
+--- Cplex Time: 0.03sec (det. 0.32 ticks)
 
 --- Returning a primal only solution to GAMS (marginals all set to NA).
 --- Fixing integer variables and solving final LP...
@@ -131,4 +132,4 @@ Relative gap:            0.000000
 
 --- Reading solution for model pipelineRoute
 *** Status: Normal completion
---- Job Mindrum-Tyler-Project.gms Stop 12/11/25 14:23:04 elapsed 0:00:00.111
+--- Job Mindrum-Tyler-Project.gms Stop 12/11/25 14:46:55 elapsed 0:00:00.111

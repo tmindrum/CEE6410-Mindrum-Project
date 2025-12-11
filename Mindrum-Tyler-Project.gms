@@ -58,7 +58,7 @@ Scalar minDiam "minimum diameter of pipe segments (length)" / 5   /;
 Parameter cap(n,nn); 
 cap(seg)  = 500;
 
-* Cost per unit lenght of each pipe segment, takes into account cost per diameter and cost per slope.
+* Cost per unit lenght of each pipe segment, takes into account cost per slope and diameter.
 Parameter cost(n,nn);
 cost('RES','A') = 10;
 cost('RES','B') = 8;

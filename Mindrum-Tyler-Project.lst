@@ -1,4 +1,4 @@
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 1
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 1
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 C o m p i l a t i o n
 
@@ -61,7 +61,7 @@ C o m p i l a t i o n
   58  Parameter cap(n,nn);
   59  cap(seg)  = 500;
   60   
-  61  * Cost per unit lenght of each pipe segment, takes into account cost per diameter and cost per slope.
+  61  * Cost per unit lenght of each pipe segment, takes into account cost per slope and diameter.
   62  Parameter cost(n,nn);
   63  cost('RES','A') = 10;
   64  cost('RES','B') = 8;
@@ -118,7 +118,7 @@ C o m p i l a t i o n
 
 
 COMPILATION TIME     =        0.000 SECONDS      3 MB  50.4.1 84b10359 WEX-WEI
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 2
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 2
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Equation Listing    SOLVE pipelineRoute Using MIP From line 114
 
@@ -214,7 +214,7 @@ atLeastOneNode..  nodeUsed(A) + nodeUsed(B) + nodeUsed(C) + nodeUsed(D) =G= 1 ; 
 
 obj..  - 10*diam(RES,A) - 8*diam(RES,B) - 9*diam(RES,C) - 7*diam(A,D) - 15*diam(A,WTP) - 8*diam(B,D) - 20*diam(C,WTP) - 5*diam(D,WTP) + z =E= 0 ; (LHS = 0)
      
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 3
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 3
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Column Listing      SOLVE pipelineRoute Using MIP From line 114
 
@@ -316,7 +316,7 @@ z
                 (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
         1       obj
 
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 4
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 4
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Range Statistics    SOLVE pipelineRoute Using MIP From line 114
 
@@ -327,7 +327,7 @@ RHS       [min, max] : [ 1.000E+00, 5.000E+02] - Zero values observed as well
 Bound     [min, max] : [ 1.000E+00, 1.000E+00] - Zero values observed as well
 Matrix    [min, max] : [ 1.000E+00, 1.000E+05]
 
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 5
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 5
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Model Statistics    SOLVE pipelineRoute Using MIP From line 114
 
@@ -340,7 +340,7 @@ NON ZERO ELEMENTS           100     DISCRETE VARIABLES         12
 
 
 GENERATION TIME      =        0.000 SECONDS      4 MB  50.4.1 84b10359 WEX-WEI
-GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:23:04 Page 6
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 14:46:55 Page 6
 G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
 Solution Report     SOLVE pipelineRoute Using MIP From line 114
 
@@ -355,7 +355,7 @@ Solution Report     SOLVE pipelineRoute Using MIP From line 114
 **** MODEL STATUS      1 Optimal
 **** OBJECTIVE VALUE              105.0000
 
- RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ RESOURCE USAGE, LIMIT          0.031 10000000000.000
  ITERATION COUNT, LIMIT        20    2147483647
 *** This solver runs with a community license.
 --- GMO setup time: 0.00s
@@ -366,7 +366,7 @@ Solution Report     SOLVE pipelineRoute Using MIP From line 114
 
 
 --- MIP status (101): integer optimal solution.
---- Cplex Time: 0.01sec (det. 0.32 ticks)
+--- Cplex Time: 0.03sec (det. 0.32 ticks)
 
 --- Returning a primal only solution to GAMS (marginals all set to NA).
 --- Fixing integer variables and solving final LP...
