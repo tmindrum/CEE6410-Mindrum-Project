@@ -1,0 +1,592 @@
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+      CEE 6410 - Water Resources Systems Analysis
+      Semester Project
+       
+      THE PROBLEM:
+       
+      Optimize a pipeline between a reservoir and a water treatment plant to have the lowest construction cost.
+       
+      A simple schematic of the problem can be found below:         
+                         Reservoir
+                         /   |   \
+                        A    B    C
+                         \  /    /
+                          D     /
+                            \  /
+                            WTP
+       
+      For this problem a cost per each unit length of pipe was created. This accounted for slope, pipe diameter, and pipe length.
+      Pipe segments with a higher slope, pipe diameter, and pipe length had larger costs. These values can be changed to match
+      needs of other pipeline routing problems.
+       
+      THE SOLUTION: uses General Algebraic Modeling System with mixed integer programming (MIP)
+       
+      Tyler Mindrum
+      a02355861@usu.edu
+      December 10, 2025
+       
+  29   
+  30   
+  31  * 1. Define the SETS
+  32  Set n  "nodes" / RES, A, B, C, D, WTP /;
+  33  Alias (n,nn);
+  34   
+  35  * pipeline segments defined as a set of ordered pairs
+  36  Set seg(n,nn) "possible pipeline segments"
+  37        /RES.A,
+  38         RES.B,
+  39         RES.C,
+  40           A.D,
+  41           A.WTP,
+  42           B.D,
+  43           C.WTP,
+  44           D.WTP/;
+  45   
+  46  * Intermediate nodes (excluding RES and WTP)
+  47  Set interNodes(n) / A, B, C, D /;
+  48   
+  49   
+  50  * 2. DEFINE input data (change based on problem needs)
+  51  Scalar demand "required flow to WTP (vol/time)"  / 100 /;
+  52  Scalar Mflow "maximum flow to WTP (vol/time)"   / 1e5 /;
+  53  Scalar Mdiam "maximum diameter of pipe segments (length)"   / 100 /;
+  54  Scalar minDiam "minimum diameter of pipe segments (length)" / 5   /;
+  55   
+  56   
+  57  * Capacity of each segment
+  58  Parameter cap(n,nn);
+  59  cap(seg)  = 500;
+  60   
+  61  * Cost per unit lenght of each pipe segment, takes into account cost per diameter and cost per slope.
+  62  Parameter cost(n,nn);
+  63  cost('RES','A') = 10;
+  64  cost('RES','B') = 8;
+  65  cost('RES','C') =  9;
+  66  cost('A','D')   =  7;
+  67  cost('A','WTP') =  15;
+  68  cost('B','D')   =  8;
+  69  cost('C','WTP') = 20;
+  70  cost('D','WTP') =  5;
+  71   
+  72   
+  73  * 3. DEFINE the variables
+  74  Positive Variables
+  75      flow(n,nn)   "flow through each pipe segment (vol/time)"
+  76      diam(n,nn)   "diameter of each pipe segment (length)";
+  77   
+  78  Binary Variables
+  79      usepipe(n,nn) "1 if the segment is used"
+  80      nodeUsed(n)   "1 if the node A,B,C or D is used";
+  81   
+  82  Variable z "total cost, we are looking to minimize";
+  83   
+  84   
+  85  * 4. COMBINE variables and data in equations
+  86  Equation
+  87      capCons(n,nn) flow capacity constraint
+  88      diamMin(n,nn) minimum diameter
+  89      diamMax(n,nn) maximum diameter
+  90      flowLink(n,nn) link flow to binary
+  91      flowBalance(n) flow conservation at nodes
+  92      demandCons demand at WTP
+  93      nodeDef1(n) node usage constraint 1
+  94      nodeDef2(n) node usage constraint 2
+  95      atLeastOneNode use of intermediate node
+  96      obj minimizes the cost of construction of pipeline;
+  97   
+  98  capCons(n,nn)$seg(n,nn)..       flow(n,nn) =l= cap(n,nn);
+  99  diamMin(n,nn)$seg(n,nn)..       diam(n,nn) =g= minDiam * usepipe(n,nn);
+ 100  diamMax(n,nn)$seg(n,nn)..       diam(n,nn) =l= Mdiam * usepipe(n,nn);
+ 101  flowLink(n,nn)$seg(n,nn)..      flow(n,nn) =l= Mflow * usepipe(n,nn);
+ 102  flowBalance(n)$interNodes(n)..  sum(nn$seg(nn,n), flow(nn,n)) =e= sum(nn$seg(n,nn), flow(n,nn));
+ 103  demandCons..                    sum(nn$seg(nn,'WTP'), flow(nn,'WTP')) =g= demand;
+ 104  nodeDef1(n)$interNodes(n)..     sum(nn$seg(nn,n), usepipe(nn,n)) =g= nodeUsed(n);
+ 105  nodeDef2(n)$interNodes(n)..     sum(nn$seg(n,nn), usepipe(n,nn)) =g= nodeUsed(n);
+ 106  atLeastOneNode..                sum(n$interNodes(n), nodeUsed(n)) =g= 1;
+ 107  obj..                           z =e= sum((n,nn)$seg(n,nn), cost(n,nn) * diam(n,nn));
+ 108   
+ 109  * 5. DEFINE the MODEL from the EQUATIONS
+ 110  Model pipelineRoute /all/;
+ 111   
+ 112   
+ 113  * 6. SOLVE the MODEL
+ 114  Solve pipelineRoute using mip minimizing z;
+ 115   
+ 116  Display z.l, flow.l, diam.l, usepipe.l, nodeUsed.l;
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 MB  50.4.1 84b10359 WEX-WEI
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE pipelineRoute Using MIP From line 114
+
+
+---- capCons  =L=  flow capacity constraint
+
+capCons(RES,A)..  flow(RES,A) =L= 500 ; (LHS = 0)
+     
+capCons(RES,B)..  flow(RES,B) =L= 500 ; (LHS = 0)
+     
+capCons(RES,C)..  flow(RES,C) =L= 500 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- diamMin  =G=  minimum diameter
+
+diamMin(RES,A)..  diam(RES,A) - 5*usepipe(RES,A) =G= 0 ; (LHS = 0)
+     
+diamMin(RES,B)..  diam(RES,B) - 5*usepipe(RES,B) =G= 0 ; (LHS = 0)
+     
+diamMin(RES,C)..  diam(RES,C) - 5*usepipe(RES,C) =G= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- diamMax  =L=  maximum diameter
+
+diamMax(RES,A)..  diam(RES,A) - 100*usepipe(RES,A) =L= 0 ; (LHS = 0)
+     
+diamMax(RES,B)..  diam(RES,B) - 100*usepipe(RES,B) =L= 0 ; (LHS = 0)
+     
+diamMax(RES,C)..  diam(RES,C) - 100*usepipe(RES,C) =L= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- flowLink  =L=  link flow to binary
+
+flowLink(RES,A)..  flow(RES,A) - 100000*usepipe(RES,A) =L= 0 ; (LHS = 0)
+     
+flowLink(RES,B)..  flow(RES,B) - 100000*usepipe(RES,B) =L= 0 ; (LHS = 0)
+     
+flowLink(RES,C)..  flow(RES,C) - 100000*usepipe(RES,C) =L= 0 ; (LHS = 0)
+     
+REMAINING 5 ENTRIES SKIPPED
+
+
+---- flowBalance  =E=  flow conservation at nodes
+
+flowBalance(A)..  flow(RES,A) - flow(A,D) - flow(A,WTP) =E= 0 ; (LHS = 0)
+     
+flowBalance(B)..  flow(RES,B) - flow(B,D) =E= 0 ; (LHS = 0)
+     
+flowBalance(C)..  flow(RES,C) - flow(C,WTP) =E= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- demandCons  =G=  demand at WTP
+
+demandCons..  flow(A,WTP) + flow(C,WTP) + flow(D,WTP) =G= 100 ; (LHS = 0, INFES = 100 ****)
+     
+
+---- nodeDef1  =G=  node usage constraint 1
+
+nodeDef1(A)..  usepipe(RES,A) - nodeUsed(A) =G= 0 ; (LHS = 0)
+     
+nodeDef1(B)..  usepipe(RES,B) - nodeUsed(B) =G= 0 ; (LHS = 0)
+     
+nodeDef1(C)..  usepipe(RES,C) - nodeUsed(C) =G= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- nodeDef2  =G=  node usage constraint 2
+
+nodeDef2(A)..  usepipe(A,D) + usepipe(A,WTP) - nodeUsed(A) =G= 0 ; (LHS = 0)
+     
+nodeDef2(B)..  usepipe(B,D) - nodeUsed(B) =G= 0 ; (LHS = 0)
+     
+nodeDef2(C)..  usepipe(C,WTP) - nodeUsed(C) =G= 0 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- atLeastOneNode  =G=  use of intermediate node
+
+atLeastOneNode..  nodeUsed(A) + nodeUsed(B) + nodeUsed(C) + nodeUsed(D) =G= 1 ; (LHS = 0, INFES = 1 ****)
+     
+
+---- obj  =E=  minimizes the cost of construction of pipeline
+
+obj..  - 10*diam(RES,A) - 8*diam(RES,B) - 9*diam(RES,C) - 7*diam(A,D) - 15*diam(A,WTP) - 8*diam(B,D) - 20*diam(C,WTP) - 5*diam(D,WTP) + z =E= 0 ; (LHS = 0)
+     
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE pipelineRoute Using MIP From line 114
+
+
+---- flow  flow through each pipe segment (vol/time)
+
+flow(RES,A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       capCons(RES,A)
+        1       flowLink(RES,A)
+        1       flowBalance(A)
+
+flow(RES,B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       capCons(RES,B)
+        1       flowLink(RES,B)
+        1       flowBalance(B)
+
+flow(RES,C)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       capCons(RES,C)
+        1       flowLink(RES,C)
+        1       flowBalance(C)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- diam  diameter of each pipe segment (length)
+
+diam(RES,A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       diamMin(RES,A)
+        1       diamMax(RES,A)
+      -10       obj
+
+diam(RES,B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       diamMin(RES,B)
+        1       diamMax(RES,B)
+       -8       obj
+
+diam(RES,C)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       diamMin(RES,C)
+        1       diamMax(RES,C)
+       -9       obj
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- usepipe  1 if the segment is used
+
+usepipe(RES,A)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       diamMin(RES,A)
+     -100       diamMax(RES,A)
+  -100000       flowLink(RES,A)
+        1       nodeDef1(A)
+
+usepipe(RES,B)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       diamMin(RES,B)
+     -100       diamMax(RES,B)
+  -100000       flowLink(RES,B)
+        1       nodeDef1(B)
+
+usepipe(RES,C)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -5       diamMin(RES,C)
+     -100       diamMax(RES,C)
+  -100000       flowLink(RES,C)
+        1       nodeDef1(C)
+
+REMAINING 5 ENTRIES SKIPPED
+
+---- nodeUsed  1 if the node A,B,C or D is used
+
+nodeUsed(A)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       nodeDef1(A)
+       -1       nodeDef2(A)
+        1       atLeastOneNode
+
+nodeUsed(B)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       nodeDef1(B)
+       -1       nodeDef2(B)
+        1       atLeastOneNode
+
+nodeUsed(C)
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+       -1       nodeDef1(C)
+       -1       nodeDef2(C)
+        1       atLeastOneNode
+
+REMAINING ENTRY SKIPPED
+
+---- z  total cost, we are looking to minimize
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obj
+
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Range Statistics    SOLVE pipelineRoute Using MIP From line 114
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 1.000E+00, 5.000E+02] - Zero values observed as well
+Bound     [min, max] : [ 1.000E+00, 1.000E+00] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 1.000E+05]
+
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE pipelineRoute Using MIP From line 114
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS          10     SINGLE EQUATIONS           47
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           29
+NON ZERO ELEMENTS           100     DISCRETE VARIABLES         12
+
+
+GENERATION TIME      =        0.000 SECONDS      4 MB  50.4.1 84b10359 WEX-WEI
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE pipelineRoute Using MIP From line 114
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   pipelineRoute       OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  114
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE              105.0000
+
+ RESOURCE USAGE, LIMIT          0.015 10000000000.000
+ ITERATION COUNT, LIMIT        20    2147483647
+*** This solver runs with a community license.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.2.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- MIP status (101): integer optimal solution.
+--- Cplex Time: 0.01sec (det. 0.32 ticks)
+
+--- Returning a primal only solution to GAMS (marginals all set to NA).
+--- Fixing integer variables and solving final LP...
+
+
+--- Fixed MIP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.03 ticks)
+
+
+Proven optimal solution
+MIP Solution:          105.000000    (20 iterations, 0 nodes)
+Final Solve:           105.000000    (0 iterations)
+
+Best possible:         105.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+---- EQU capCons  flow capacity constraint
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A          -INF             .           500.0000          .          
+RES.B          -INF          100.0000       500.0000          .          
+RES.C          -INF             .           500.0000          .          
+A  .D          -INF             .           500.0000          .          
+A  .WTP        -INF             .           500.0000          .          
+B  .D          -INF          100.0000       500.0000          .          
+C  .WTP        -INF             .           500.0000          .          
+D  .WTP        -INF          100.0000       500.0000          .          
+
+---- EQU diamMin  minimum diameter
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A            .              .            +INF             .          
+RES.B            .              .            +INF            8.0000      
+RES.C            .              .            +INF             .          
+A  .D            .              .            +INF             .          
+A  .WTP          .              .            +INF             .          
+B  .D            .              .            +INF            8.0000      
+C  .WTP          .              .            +INF             .          
+D  .WTP          .              .            +INF            5.0000      
+
+---- EQU diamMax  maximum diameter
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A          -INF             .              .              .          
+RES.B          -INF          -95.0000          .              .          
+RES.C          -INF             .              .              .          
+A  .D          -INF             .              .              .          
+A  .WTP        -INF             .              .              .          
+B  .D          -INF          -95.0000          .              .          
+C  .WTP        -INF             .              .              .          
+D  .WTP        -INF          -95.0000          .              .          
+
+---- EQU flowLink  link flow to binary
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A          -INF             .              .              .          
+RES.B          -INF       -99900.0000          .              .          
+RES.C          -INF             .              .              .          
+A  .D          -INF             .              .              .          
+A  .WTP        -INF             .              .              .          
+B  .D          -INF       -99900.0000          .              .          
+C  .WTP        -INF             .              .              .          
+D  .WTP        -INF       -99900.0000          .              .          
+
+---- EQU flowBalance  flow conservation at nodes
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .              .              .          
+B          .              .              .             EPS         
+C          .              .              .              .          
+D          .              .              .             EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU demandCons       100.0000       100.0000        +INF            EPS         
+
+  demandCons  demand at WTP
+
+---- EQU nodeDef1  node usage constraint 1
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF             .          
+B          .             1.0000        +INF             .          
+C          .              .            +INF             .          
+D          .              .            +INF             .          
+
+---- EQU nodeDef2  node usage constraint 2
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF             .          
+B          .             1.0000        +INF             .          
+C          .              .            +INF             .          
+D          .              .            +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU atLeastOn~         1.0000         1.0000        +INF             .          
+---- EQU obj                 .              .              .             1.0000      
+
+  atLeastOneNode  use of intermediate node
+  obj  minimizes the cost of construction of pipeline
+
+---- VAR flow  flow through each pipe segment (vol/time)
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A            .              .            +INF            EPS         
+RES.B            .           100.0000        +INF             .          
+RES.C            .              .            +INF            EPS         
+A  .D            .              .            +INF            EPS         
+A  .WTP          .              .            +INF            EPS         
+B  .D            .           100.0000        +INF             .          
+C  .WTP          .              .            +INF            EPS         
+D  .WTP          .           100.0000        +INF             .          
+
+---- VAR diam  diameter of each pipe segment (length)
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A            .              .            +INF           10.0000      
+RES.B            .             5.0000        +INF             .          
+RES.C            .              .            +INF            9.0000      
+A  .D            .              .            +INF            7.0000      
+A  .WTP          .              .            +INF           15.0000      
+B  .D            .             5.0000        +INF             .          
+C  .WTP          .              .            +INF           20.0000      
+D  .WTP          .             5.0000        +INF             .          
+
+---- VAR usepipe  1 if the segment is used
+
+               LOWER          LEVEL          UPPER         MARGINAL
+
+RES.A            .              .             1.0000         EPS         
+RES.B            .             1.0000         1.0000        40.0000      
+RES.C            .              .             1.0000         EPS         
+A  .D            .              .             1.0000         EPS         
+A  .WTP          .              .             1.0000         EPS         
+B  .D            .             1.0000         1.0000        40.0000      
+C  .WTP          .              .             1.0000         EPS         
+D  .WTP          .             1.0000         1.0000        25.0000      
+
+---- VAR nodeUsed  1 if the node A,B,C or D is used
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .             1.0000         EPS         
+B          .              .             1.0000         EPS         
+C          .              .             1.0000         EPS         
+D          .             1.0000         1.0000         EPS         
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF          105.0000        +INF             .          
+
+  z  total cost, we are looking to minimize
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 50.4.1  84b10359 Aug 28, 2025          WEX-WEI x86 64bit/MS Windows - 12/11/25 13:10:42 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+E x e c u t i o n
+
+
+----    116 VARIABLE z.L                   =      105.000  total cost, we are looking to minimize
+
+----    116 VARIABLE flow.L  flow through each pipe segment (vol/time)
+
+              B           D         WTP
+
+RES     100.000
+B                   100.000
+D                               100.000
+
+
+----    116 VARIABLE diam.L  diameter of each pipe segment (length)
+
+              B           D         WTP
+
+RES       5.000
+B                     5.000
+D                                 5.000
+
+
+----    116 VARIABLE usepipe.L  1 if the segment is used
+
+              B           D         WTP
+
+RES       1.000
+B                     1.000
+D                                 1.000
+
+
+----    116 VARIABLE nodeUsed.L  1 if the node A,B,C or D is used
+
+D 1.000
+
+
+
+EXECUTION TIME       =        0.078 SECONDS      4 MB  50.4.1 84b10359 WEX-WEI
+
+
+USER: Course License                                 G250902+0003Ac-GEN
+      Utah State University                                     DCE4709
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\tytya\OneDrive\Documents\GitHub\CEE6410-Mindrum\Mindrum-Tyler-Project.gms
+Output     C:\Users\tytya\OneDrive\Documents\GitHub\CEE6410-Mindrum\Mindrum-Tyler-Project.lst
