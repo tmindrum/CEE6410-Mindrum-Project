@@ -112,5 +112,3 @@ Model pipelineRoute /all/;
 
 * 6. SOLVE the MODEL
 Solve pipelineRoute using mip minimizing z;
-
-Display z.l, flow.l, diam.l, usepipe.l, nodeUsed.l;
